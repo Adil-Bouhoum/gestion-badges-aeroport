@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+// import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -8,7 +8,7 @@ const Login = () => {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    // const { login } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -16,7 +16,9 @@ const Login = () => {
         setError('');
 
         try {
-            await login(formData);
+            // Temporary - just log the form data instead of calling login
+            console.log('Form submitted:', formData);
+            // await login(formData);
         } catch (error) {
             setError(error.response?.data?.message || 'Login failed');
         } finally {
