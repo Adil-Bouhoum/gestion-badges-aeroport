@@ -3,13 +3,14 @@ import axios from "axios";
 // Create axios instance
 const api = axios.create({
     baseURL: "/api",
+    withCredentials: true, // Important for Sanctum cookies!
     headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
     },
 });
 
-// Add token to requests
+// Add Authorization token if exists
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem("token");
@@ -18,20 +19,23 @@ api.interceptors.request.use(
         }
         return config;
     },
-    (error) => {
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
 
-// Auth service
+// CSRF Token fetcher (required before login/register)
+const getCsrfToken = () =>
+    axios.get("/sanctum/csrf-cookie", { withCredentials: true });
+
+// Auth Service
 export const authService = {
+    getCsrfToken,
     login: (credentials) => api.post("/login", credentials),
     register: (userData) => api.post("/register", userData),
     logout: () => api.post("/logout"),
-    me: () => api.get("/user"),
+    me: () => api.get("/me"),
 };
 
-// Badge service
+// Badge Service
 export const badgeService = {
     getAll: () => api.get("/badges"),
     create: (data) => api.post("/badges", data),
@@ -39,7 +43,7 @@ export const badgeService = {
     delete: (id) => api.delete(`/badges/${id}`),
 };
 
-// Zone service
+// Zone Service
 export const zoneService = {
     getAll: () => api.get("/zones"),
     create: (data) => api.post("/zones", data),
