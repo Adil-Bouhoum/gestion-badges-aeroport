@@ -13,7 +13,7 @@ const Login = () => {
     });
     const [localError, setLocalError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login, error: authError } = useAuth(); // Remove setError from here
+    const { login, error: authError } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -22,16 +22,25 @@ const Login = () => {
         setLocalError('');
 
         try {
-            await login(formData);
-            navigate('/dashboard', { replace: true });
+            const response = await login(formData);
+            
+            // Check if the response contains user data with is_admin property
+            if (response && response.user) {
+                // Redirect based on admin status
+                navigate(response.user.is_admin ? '/dashboard' : '/home', { replace: true });
+            } else {
+                // Fallback redirect if no user data
+                navigate('/dashboard', { replace: true });
+            }
         } catch (error) {
             // Handle error from login promise
-            setLocalError(error.message || 'Login failed');
+            const errorMessage = error.message || 'Login failed';
+            setLocalError(errorMessage);
+            console.error('Login error:', error);
         } finally {
             setLoading(false);
         }
     };
-
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -64,7 +73,7 @@ const Login = () => {
                 width: '100%', 
                 maxWidth: '28rem',
                 borderTop: '4px solid #002366',
-                backgroundColor: 'rgba(255, 255, 255, 0.95)' // Slightly transparent white
+                backgroundColor: 'rgba(255, 255, 255, 0.95)'
             }}>
                 <div className="card-body p-4">
                     <div className="text-center mb-4">
@@ -96,6 +105,7 @@ const Login = () => {
                                 required
                                 value={formData.email}
                                 onChange={handleChange}
+                                disabled={loading}
                             />
                         </div>
                         
@@ -109,6 +119,7 @@ const Login = () => {
                                 required
                                 value={formData.password}
                                 onChange={handleChange}
+                                disabled={loading}
                             />
                         </div>
                         

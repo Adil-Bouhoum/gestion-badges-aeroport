@@ -24,7 +24,8 @@ class User extends Authenticatable
         'password',
         'fonction',
         'service',
-        'photo'
+        'photo',
+        'is_admin'
     ];
 
     /**
@@ -44,6 +45,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_admin' => 'boolean',
         // Remove the 'password' => 'hashed' cast for compatibility
     ];
 
@@ -69,5 +71,21 @@ class User extends Authenticatable
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->is_admin;
+    }
+
+    /**
+     * Scope for admin users
+     */
+    public function scopeAdmins($query)
+    {
+        return $query->where('is_admin', true);
     }
 }

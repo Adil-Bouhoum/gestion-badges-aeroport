@@ -1,16 +1,17 @@
+// src/services/api.js
 import axios from "axios";
 
 // Create axios instance
 const api = axios.create({
     baseURL: "/api",
-    withCredentials: true, // Important for Sanctum cookies!
+    withCredentials: true,
     headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
     },
 });
 
-// Add Authorization token if exists
+// Request interceptor for auth token
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem("token");
@@ -22,9 +23,21 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// CSRF Token fetcher (required before login/register)
-const getCsrfToken = () =>
-    axios.get("/sanctum/csrf-cookie", { withCredentials: true });
+// Response interceptor for error handling
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+        }
+        return Promise.reject(error);
+    }
+);
+
+// CSRF Token fetcher
+export const getCsrfToken = () =>
+    axios.get("/sanctum/csrf-cookie", { baseURL: "/", withCredentials: true });
 
 // Auth Service
 export const authService = {
@@ -33,6 +46,17 @@ export const authService = {
     register: (userData) => api.post("/register", userData),
     logout: () => api.post("/logout"),
     me: () => api.get("/me"),
+    forgotPassword: (email) => api.post("/forgot-password", { email }),
+    resetPassword: (data) => api.post("/reset-password", data),
+};
+
+// User Service
+export const userService = {
+    getAll: () => api.get("/users"),
+    get: (id) => api.get(`/users/${id}`),
+    create: (data) => api.post("/users", data),
+    update: (id, data) => api.put(`/users/${id}`, data),
+    delete: (id) => api.delete(`/users/${id}`),
 };
 
 // Badge Service

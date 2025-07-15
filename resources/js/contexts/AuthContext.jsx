@@ -1,87 +1,107 @@
+// src/contexts/AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { authService } from "../services/api";
+import api from "../services/api";
 
 const AuthContext = createContext();
 
-
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error("useAuth must be used within AuthProvider");
-    }
-    return context;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+  return context;
 };
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);  // ✅ Error state for auth
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            authService
-                .me()
-                .then((response) => setUser(response.data.user))
-                .catch(() => localStorage.removeItem("token"))
-                .finally(() => setLoading(false));
-        } else {
-            setLoading(false);
-        }
-    }, []);
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+  api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  try {
+    const response = await authService.me();
+    setUser(response.data);
+  } catch (err) {
+    localStorage.removeItem("token");
+    setUser(null);
+  }
+}
+      setLoading(false);
+    };
 
-    const login = async (credentials) => {
-    setLoading(true);
-    setError(null); // ✅ clear old errors before login attempt
-    try {
-        await authService.getCsrfToken();
-        const response = await authService.login(credentials);
-        const { user, token } = response.data;
-        localStorage.setItem("token", token);
-        setUser(user);
-        return response;
-    } catch (error) {
-        const errorMessage = error.response?.data?.message || "Login failed";
-        setError(errorMessage);  // ✅ this shows the message in the UI
-        throw new Error(errorMessage); // Login.jsx will catch this
-    } finally {
-        setLoading(false);
-    }
+    initializeAuth();
+  }, []);
+
+  const login = async (credentials) => {
+  setLoading(true);
+  setError(null);
+  try {
+    await authService.getCsrfToken();
+    const response = await authService.login(credentials);
+    localStorage.setItem("token", response.data.token);
+
+    // Force axios to include token after login
+    api.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
+
+    setUser(response.data.user);
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Login failed";
+    setError(message);
+    throw new Error(message);
+  } finally {
+    setLoading(false);
+  }
 };
 
+  const register = async (userData) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await authService.getCsrfToken();
+      const response = await authService.register(userData);
+      localStorage.setItem("token", response.data.token);
+      setUser(response.data.user);
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.message || "Registration failed";
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const register = async (userData) => {
-        const response = await authService.register(userData);
-        const { user, token } = response.data;
-        localStorage.setItem("token", token);
-        setUser(user);
-        return response;
-    };
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+    localStorage.removeItem("token");
+    setUser(null);
+  };
 
-    const logout = async () => {
-        try {
-            await authService.logout();
-        } catch (error) {
-            console.error("Logout error:", error);
-        }
-        localStorage.removeItem("token");
-        setUser(null);
-    };
-
-    const value = {
+  const value = {
     user,
+    loading,
+    error,
     login,
     register,
     logout,
-    loading,
-    error,         // ✅ Expose error
-    setError,      // ✅ Expose setError so components can clear it
-};
+    isAuthenticated: !!user,
+    isAdmin: user?.is_admin || false,
+    setError
+  };
 
-
-    return (
-        <AuthContext.Provider value={value}>
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

@@ -45,6 +45,7 @@ class AuthController extends Controller
                 ])
             ],
             'password' => 'required|string|min:8|confirmed',
+            'isAdmin' => 'sometimes|boolean', // Optional field for admin creation
         ]);
 
         if ($validator->fails()) {
@@ -61,6 +62,7 @@ class AuthController extends Controller
                 'fonction' => $request->fonction,
                 'service' => $request->service,
                 'password' => $request->password, // Will be hashed by the model
+                'is_admin' => $request->isAdmin ?? false, // Default to false if not provided
             ]);
 
             $token = $user->createToken('auth_token')->plainTextToken;
@@ -115,11 +117,15 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // Determine redirect URL based on admin status
+        $redirectUrl = $user->is_admin ? '/dashboard' : '/home';
+
         return response()->json([
             'message' => 'Login successful',
             'user' => $user,
             'token' => $token,
-            'token_type' => 'Bearer'
+            'token_type' => 'Bearer',
+            'redirect_url' => $redirectUrl
         ]);
     }
 
@@ -142,6 +148,27 @@ class AuthController extends Controller
     {
         return response()->json([
             'user' => $request->user()
+        ]);
+    }
+
+    /**
+     * Toggle user admin status (only for admins)
+     */
+    public function toggleAdmin(Request $request, User $user)
+    {
+        // Check if current user is admin
+        if (!$request->user()->is_admin) {
+            return response()->json([
+                'message' => 'Unauthorized. Admin access required.'
+            ], 403);
+        }
+
+        $user->is_admin = !$user->is_admin;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Admin status updated successfully',
+            'user' => $user
         ]);
     }
 }
