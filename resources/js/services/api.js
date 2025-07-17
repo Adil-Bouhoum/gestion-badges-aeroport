@@ -67,6 +67,13 @@ export const badgeService = {
     delete: (id) => api.delete(`/badges/${id}`),
 };
 
+// Badge Request Service (NEW - this was missing!)
+export const badgeRequestService = {
+    getAll: () => api.get("/badge-requests"),
+    create: (data) => api.post("/badge-requests", data),
+    updateStatus: (id, data) => api.put(`/badge-requests/${id}/status`, data),
+};
+
 // Zone Service
 export const zoneService = {
     getAll: () => api.get("/zones"),
