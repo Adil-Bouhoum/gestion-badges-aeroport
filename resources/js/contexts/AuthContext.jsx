@@ -19,23 +19,29 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-  api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  try {
-    const response = await authService.me();
-    setUser(response.data);
-  } catch (err) {
-    localStorage.removeItem("token");
-    setUser(null);
-  }
-}
-      setLoading(false);
-    };
+  const initializeAuth = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      try {
+        const response = await authService.me();
+        // Add validation for complete user data
+        if (response.data && response.data.id) {
+          setUser(response.data);
+        } else {
+          throw new Error("Incomplete user data");
+        }
+      } catch (err) {
+        console.error("Auth initialization error:", err);
+        localStorage.removeItem("token");
+        setUser(null);
+      }
+    }
+    setLoading(false);
+  };
 
-    initializeAuth();
-  }, []);
+  initializeAuth();
+}, []);
 
   const login = async (credentials) => {
   setLoading(true);

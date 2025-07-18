@@ -23,4 +23,9 @@ class BadgeRequest extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function badge()
+    {
+        return $this->hasOne(Badge::class);
+    }
 }

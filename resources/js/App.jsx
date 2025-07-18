@@ -1,5 +1,6 @@
 // resources/js/App.jsx
 import React from 'react';
+import { Link } from 'react-router-dom'
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -8,6 +9,8 @@ import Register from './components/auth/Register';
 import UserManagement from './components/dashboard/UserManagement';
 import BadgeRequestPage from './components/badge/BadgeRequestPage';
 import BadgeRequestManagement from './components/badge/BadgeRequestManagement';
+import BadgeCreation from './components/badge/BadgeCreation';
+import BadgeList from './components/badge/BadgeList';
 import SidebarLayout from './components/layout/SidebarLayout';
 import '../css/app.css';
 
@@ -78,10 +81,10 @@ const Home = () => {
               <i className="fas fa-id-badge fa-3x text-primary mb-3"></i>
               <h5 className="card-title">Request Badge</h5>
               <p className="card-text">Submit a new badge request for airport access</p>
-              <a href="/badge-request" className="btn btn-primary">
+              <Link to="/badge-request" className="btn btn-primary">
                 <i className="fas fa-plus me-2"></i>
                 New Request
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -92,28 +95,58 @@ const Home = () => {
               <i className="fas fa-list fa-3x text-info mb-3"></i>
               <h5 className="card-title">My Requests</h5>
               <p className="card-text">View and track your badge request status</p>
-              <a href="/badge-request" className="btn btn-info">
+              <Link to="/badge-request" className="btn btn-info">
                 <i className="fas fa-eye me-2"></i>
                 View Requests
-              </a>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-6 col-lg-4 mb-4">
+          <div className="card border-warning">
+            <div className="card-body text-center">
+              <i className="fas fa-id-card fa-3x text-warning mb-3"></i>
+              <h5 className="card-title">My Badges</h5>
+              <p className="card-text">View and download your created badges</p>
+              <Link to="/badges" className="btn btn-warning">
+                <i className="fas fa-download me-2"></i>
+                View Badges
+              </Link>
             </div>
           </div>
         </div>
 
         {user?.role === 'admin' && (
-          <div className="col-md-6 col-lg-4 mb-4">
-            <div className="card border-success">
-              <div className="card-body text-center">
-                <i className="fas fa-tasks fa-3x text-success mb-3"></i>
-                <h5 className="card-title">Manage Requests</h5>
-                <p className="card-text">Review and approve badge requests</p>
-                <a href="/admin/badge-requests" className="btn btn-success">
-                  <i className="fas fa-cog me-2"></i>
-                  Manage
-                </a>
+          <>
+            <div className="col-md-6 col-lg-4 mb-4">
+              <div className="card border-success">
+                <div className="card-body text-center">
+                  <i className="fas fa-tasks fa-3x text-success mb-3"></i>
+                  <h5 className="card-title">Manage Requests</h5>
+                  <p className="card-text">Review and approve badge requests</p>
+                  <Link to="/admin/badge-requests" className="btn btn-success">
+                    <i className="fas fa-cog me-2"></i>
+                    Manage
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
+
+            <div className="col-md-6 col-lg-4 mb-4">
+              <div className="card border-danger">
+                <div className="card-body text-center">
+                  <i className="fas fa-plus-circle fa-3x text-danger mb-3"></i>
+                  <h5 className="card-title">Create Badge</h5>
+                  <p className="card-text">Create badges from approved requests</p>
+                  <Link to="/admin/create-badge" className="btn btn-danger">
+                    <i className="fas fa-plus me-2"></i>
+                    Create Badge
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
 
@@ -133,6 +166,7 @@ const Home = () => {
                   <ol className="list-unstyled">
                     <li><i className="fas fa-check text-success me-2"></i>Submit badge request with required information</li>
                     <li><i className="fas fa-check text-success me-2"></i>Admin reviews and processes your request</li>
+                    <li><i className="fas fa-check text-success me-2"></i>Admin creates badge from approved request</li>
                     <li><i className="fas fa-check text-success me-2"></i>Download approved badge as PDF</li>
                   </ol>
                 </div>
@@ -185,6 +219,7 @@ function AppRoutes() {
               <Routes>
                 <Route path="home" element={<Home />} />
                 <Route path="badge-request" element={<BadgeRequestPage />} />
+                <Route path="badges" element={<BadgeList />} />
                 
                 {/* Admin Routes */}
                 <Route path="dashboard" element={
@@ -195,6 +230,11 @@ function AppRoutes() {
                 <Route path="admin/badge-requests" element={
                   <AdminRoute>
                     <BadgeRequestManagement />
+                  </AdminRoute>
+                } />
+                <Route path="admin/create-badge" element={
+                  <AdminRoute>
+                    <BadgeCreation />
                   </AdminRoute>
                 } />
                 

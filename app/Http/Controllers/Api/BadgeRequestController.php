@@ -14,9 +14,8 @@ class BadgeRequestController extends Controller
      */
     public function index(Request $request)
     {
-        $query = BadgeRequest::with('user:id,name,email');
+        $query = BadgeRequest::with(['user:id,name,email', 'badge']);
 
-        // If user is not admin, filter by their own requests
         if (!$request->user()->isAdmin()) {
             $query->where('user_id', $request->user()->id);
         }
@@ -71,7 +70,7 @@ class BadgeRequestController extends Controller
 
         $badgeRequest->update([
             'status' => $validated['status'],
-            'admin_comment' => $validated['admin_comment'],
+            'admin_comment' => $validated['admin_comment'] ?? null,
             'processed_at' => now(),
         ]);
 
@@ -80,7 +79,7 @@ class BadgeRequestController extends Controller
             Badge::create([
                 'user_id' => $badgeRequest->user_id,
                 'badge_request_id' => $badgeRequest->id,
-                'numero' => 'BDG-' . now()->format('Ymd') . '-' . strtoupper(uniqid()),
+                'badge_number' => 'BDG-' . now()->format('Ymd') . '-' . strtoupper(uniqid()),
                 'type' => $badgeRequest->type,
                 'zones_acces' => $badgeRequest->requested_zones,
                 'date_emission' => now(),

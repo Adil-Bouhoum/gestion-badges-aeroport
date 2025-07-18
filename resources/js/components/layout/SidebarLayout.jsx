@@ -23,8 +23,10 @@ const SidebarLayout = ({ children }) => {
   const menuItems = [
     { path: '/home', icon: 'fas fa-home', label: 'Home' },
     { path: '/badge-request', icon: 'fas fa-id-badge', label: 'Badge Request' },
+    { path: '/badges', icon: 'fas fa-id-card', label: 'My Badges' },
     { path: '/dashboard', icon: 'fas fa-users', label: 'User Management', adminOnly: true },
     { path: '/admin/badge-requests', icon: 'fas fa-tasks', label: 'Request Management', adminOnly: true },
+    { path: '/admin/create-badge', icon: 'fas fa-plus-circle', label: 'Create Badge', adminOnly: true },
     { path: '/placeholder1', icon: 'fas fa-box', label: 'Placeholder 1' },
     { path: '/placeholder2', icon: 'fas fa-cog', label: 'Placeholder 2' }
   ];
@@ -41,6 +43,8 @@ const SidebarLayout = ({ children }) => {
             <button
               className="btn btn-sm btn-outline-light"
               onClick={() => setIsCollapsed(!isCollapsed)}
+              aria-expanded={!isCollapsed}
+              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               <i className={`fas fa-${isCollapsed ? 'chevron-right' : 'chevron-left'}`}></i>
             </button>
@@ -57,6 +61,7 @@ const SidebarLayout = ({ children }) => {
                     to={item.path}
                     className={`nav-link text-white ${isActive(item.path) ? 'active' : ''}`}
                     title={isCollapsed ? item.label : ''}
+                    aria-current={isActive(item.path) ? 'page' : undefined}
                   >
                     <i className={`${item.icon} ${isCollapsed ? 'text-center' : 'me-2'}`}></i>
                     {!isCollapsed && item.label}
@@ -103,11 +108,12 @@ const SidebarLayout = ({ children }) => {
               <div className="nav-item dropdown">
                 <a
                   className="nav-link dropdown-toggle d-flex align-items-center"
-                  href="#"
+                  href="#!"
                   id="navbarDropdown"
                   role="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
+                  onClick={(e) => e.preventDefault()}
                 >
                   <div className="avatar-circle bg-primary text-white me-2">
                     {user?.name?.charAt(0).toUpperCase() || 'U'}

@@ -13,12 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
+
         Schema::create('badges', function (Blueprint $table) {
             $table->id();
-            $table->string('numero')->unique();
-            $table->date('expiration');
-            $table->enum('statut', ['actif', 'suspendu', 'expiré']);
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('badge_request_id')->constrained()->onDelete('cascade');
+            $table->string('badge_number')->unique();
+            $table->timestamp('issued_at')->useCurrent();
+            $table->date('expires_at');
+            $table->string('pdf_path')->nullable(); // Store the PDF path
             $table->timestamps();
         });
     }
